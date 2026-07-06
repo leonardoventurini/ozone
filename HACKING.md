@@ -1,17 +1,25 @@
 
 ### General Tips
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Most routes live in the `app/` directory. The page auto-updates as you edit files while `yarn dev` is running.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+[Route handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) under `app/api` are mapped to `/api/*`.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+### Local Integrated Development Setup
 
-### Local Integerated Development Setup
+Ozone requires a PDS service to talk to, and it is convenient to point it to a local `dev-env` instance for testing during development. For the full current setup, including the sibling `atproto` checkout, package manager requirements, startup commands, ports, and seeded credentials, see [Local development with atproto dev-env](./docs/local-development.md).
 
-Ozone requires a PDS service to talk to, and it is convenient to point it to a local `dev-env` instance for testing during development.
+Quick reference:
 
-1. In the separate [atproto project](https://github.com/bluesky-social/atproto), run the dev server using `yarn workspace @atproto/dev-env start`. This will run a PDS, seeded with some users and data for you.
+1. In the separate [atproto project](https://github.com/bluesky-social/atproto), prepare the repo and run the dev environment:
+   ```
+   corepack enable
+   corepack prepare pnpm@11.5.2 --activate
+   make deps
+   make build
+   make run-dev-env
+   ```
+   This will run a PDS, AppView, PLC server, Ozone service, and seeded users for you.
 2. Find the Ozone service DID in the dev-env startup output. Look for a line like:
    ```
    🗼 Ozone service DID did:plc:xxxxx

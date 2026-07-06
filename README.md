@@ -20,7 +20,7 @@ See [User Guide](./docs/userguide.md) for a quick introduction for users of the 
 
 You can self-host Ozone to run your own moderation service. Start with [HOSTING.md](./HOSTING.md). This will produce a Dockerized setup for hosting the Ozone UI and backend together.
 
-See [HACKING.md](./HACKING.md) for local development requirements, like development with a local PDS instance, or working with un-released changes to the `@atproto/api` package.
+For a local sandbox using a sibling `atproto` checkout, see [Local development with atproto dev-env](./docs/local-development.md). See [HACKING.md](./HACKING.md) for additional development notes, including working with unreleased changes to the `@atproto/api` package.
 
 ## Contributions
 
