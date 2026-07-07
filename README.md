@@ -17,6 +17,9 @@ Features:
 See [User Guide](./docs/userguide.md) for a quick introduction for users of the interface.
 See [Architecture](./docs/architecture.md) for a Mermaid diagram and PNG render
 of the UI, service, external atproto dependencies, and deployment topologies.
+See [TypeScript Entity Compendium](./docs/typescript-entity-compendium.md) for
+a map of the local named types and generated atproto type families used by the
+codebase.
 
 ## Quickstart
 
