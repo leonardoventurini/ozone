@@ -7,6 +7,7 @@ import {
 } from '@headlessui/react'
 import { useEffect, useState } from 'react'
 
+import { getOptionalProfile } from '@/lib/profile'
 import { classNames } from '@/lib/util'
 import { useLabelerAgent } from '@/shell/ConfigurationContext'
 
@@ -42,9 +43,7 @@ const getProfilesForQuery = async (
   q: string,
 ): Promise<TypeaheadResult[]> => {
   if (q.startsWith('did:')) {
-    const { data: profile } = await agent.app.bsky.actor.getProfile({
-      actor: q,
-    })
+    const profile = await getOptionalProfile(agent, q)
 
     return profile
       ? [

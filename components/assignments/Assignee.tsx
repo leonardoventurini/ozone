@@ -1,11 +1,18 @@
 'use client'
 
+import {
+  getOptionalProfile,
+  PROFILE_CACHE_STALE_TIME_MS,
+} from '@/lib/profile'
 import { useLabelerAgent } from '@/shell/ConfigurationContext'
-import { useQuery } from '@tanstack/react-query'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { useQuery } from '@tanstack/react-query'
 
+/** Props for rendering a compact assignee identity chip. */
 interface AssigneeProps {
+  /** DID to render when profile enrichment is unavailable. */
   did: string
+  /** Optional removal callback shown as an affordance on hover. */
   onRemove?: () => void
 }
 
@@ -13,15 +20,10 @@ export function Assignee({ did, onRemove }: AssigneeProps) {
   const labelerAgent = useLabelerAgent()
   const { data: profile } = useQuery({
     queryKey: ['assignee', did],
-    queryFn: async () => {
-      const { data } = await labelerAgent.app.bsky.actor.getProfile({
-        actor: did,
-      })
-      return data
-    },
+    queryFn: () => getOptionalProfile(labelerAgent, did),
     retry: false,
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
+    staleTime: PROFILE_CACHE_STALE_TIME_MS,
+    refetchInterval: PROFILE_CACHE_STALE_TIME_MS,
   })
 
   const displayLabel =

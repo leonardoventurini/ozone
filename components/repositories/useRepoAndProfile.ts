@@ -1,4 +1,5 @@
 import { getDidFromHandle } from '@/lib/identity'
+import { getOptionalProfile, PROFILE_CACHE_STALE_TIME_MS } from '@/lib/profile'
 import { useLabelerAgent } from '@/shell/ConfigurationContext'
 import { useQuery } from '@tanstack/react-query'
 
@@ -23,21 +24,10 @@ export const useRepoAndProfile = ({ id }: { id?: string }) => {
           await labelerAgent.api.tools.ozone.moderation.getRepo({ did })
         return repo
       }
-      const getProfile = async () => {
-        try {
-          const { data: profile } =
-            await labelerAgent.app.bsky.actor.getProfile({ actor: id })
-          return profile
-        } catch (err) {
-          if (err?.['error'] === 'AccountTakedown') {
-            return undefined
-          }
-          throw err
-        }
-      }
+      const getProfile = () => getOptionalProfile(labelerAgent, id)
       const [repo, profile] = await Promise.all([getRepo(), getProfile()])
       return { repo, profile }
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: PROFILE_CACHE_STALE_TIME_MS,
   })
 }

@@ -9,6 +9,7 @@ import {
   AppBskyActorStatus,
 } from '@atproto/api'
 import { buildBlueSkyAppUrl, parseAtUri, pluralize } from '@/lib/util'
+import { getOptionalProfile } from '@/lib/profile'
 import { PostAsCard } from './posts/PostsFeed'
 import Link from 'next/link'
 import { LoadingDense, displayError, LoadingFailedDense } from './Loader'
@@ -373,20 +374,7 @@ const useRepoAndProfile = ({ did }: { did: string }) => {
           })
         return repo
       }
-      const getProfile = async () => {
-        try {
-          const { data: profile } =
-            await labelerAgent.app.bsky.actor.getProfile({
-              actor: did,
-            })
-          return profile
-        } catch (err) {
-          if (err?.['status'] === 400) {
-            return undefined
-          }
-          throw err
-        }
-      }
+      const getProfile = () => getOptionalProfile(labelerAgent, did)
       const [repo, profile] = await Promise.all([getRepo(), getProfile()])
       return { repo, profile }
     },

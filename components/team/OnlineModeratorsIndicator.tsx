@@ -4,6 +4,10 @@ import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { UserGroupIcon } from '@heroicons/react/24/outline'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
+import {
+  getOptionalProfile,
+  PROFILE_CACHE_STALE_TIME_MS,
+} from '@/lib/profile'
 import { useLabelerAgent } from '../shell/ConfigurationContext'
 import { useOnlineModerators } from './useOnlineModerators'
 
@@ -51,13 +55,8 @@ function ModeratorListItem({
   const labelerAgent = useLabelerAgent()
   const { data: profile } = useQuery({
     queryKey: ['moderator-profile', did],
-    queryFn: async () => {
-      const { data } = await labelerAgent.app.bsky.actor.getProfile({
-        actor: did,
-      })
-      return data
-    },
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => getOptionalProfile(labelerAgent, did),
+    staleTime: PROFILE_CACHE_STALE_TIME_MS,
     retry: false,
   })
 
