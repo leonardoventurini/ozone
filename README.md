@@ -15,6 +15,9 @@ Features:
 - quick-action modal (Ctrl-K)
 
 See [User Guide](./docs/userguide.md) for a quick introduction for users of the interface.
+See [Architecture](./docs/architecture.md) for a Mermaid diagram and zoomable
+PDF render of the UI, service, external atproto dependencies, and deployment
+topologies.
 
 ## Quickstart
 
