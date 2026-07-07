@@ -1,32 +1,34 @@
 'use client'
 
+import {
+  getOptionalProfile,
+  PROFILE_CACHE_STALE_TIME_MS,
+  type ActorProfile,
+} from '@/lib/profile'
 import { useLabelerAgent } from '@/shell/ConfigurationContext'
-import { AppBskyActorDefs } from '@atproto/api'
 import { useQuery } from '@tanstack/react-query'
 
+/** Props for rendering a compact moderator identity badge. */
 export interface ModeratorBadgeProps {
+  /** DID to render when profile enrichment is unavailable. */
   did: string
-  profile?:
-    | AppBskyActorDefs.ProfileView
-    | AppBskyActorDefs.ProfileViewBasic
-    | AppBskyActorDefs.ProfileViewDetailed
+  /** Optional preloaded profile data, used to avoid an extra AppView lookup. */
+  profile?: ActorProfile
 }
 
 /** Display a user. Attempts to enrich with profile data if not provided. */
-export function ModeratorBadge({ did, profile: profileProp }: ModeratorBadgeProps) {
+export function ModeratorBadge({
+  did,
+  profile: profileProp,
+}: ModeratorBadgeProps) {
   const labelerAgent = useLabelerAgent()
   const { data: fetchedProfile } = useQuery({
     queryKey: ['user', did],
-    queryFn: async () => {
-      const { data } = await labelerAgent.app.bsky.actor.getProfile({
-        actor: did,
-      })
-      return data
-    },
+    queryFn: () => getOptionalProfile(labelerAgent, did),
     enabled: !profileProp,
     retry: false,
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
+    staleTime: PROFILE_CACHE_STALE_TIME_MS,
+    refetchInterval: PROFILE_CACHE_STALE_TIME_MS,
   })
 
   const profile = profileProp ?? fetchedProfile

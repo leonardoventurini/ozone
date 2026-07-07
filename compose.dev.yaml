@@ -1,0 +1,139 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: pg
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pg -d postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - ozone_dev_postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD-SHELL", "[ \"$$(redis-cli ping)\" = \"PONG\" ]"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - ozone_dev_redis:/data
+
+  atproto-dev-env:
+    build:
+      context: .
+      dockerfile: docker/dev/atproto.Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    working_dir: /workspace/atproto
+    environment:
+      NODE_ENV: development
+      ATPROTO_SOURCE_DIR: /workspace/atproto-source
+      DB_TEST_POSTGRES_URL: postgresql://pg:password@postgres:5432/postgres
+      REDIS_TEST_HOST: redis:6379
+      DB_POSTGRES_SCHEMA: dev
+      PNPM_STORE_DIR: /home/node/.local/share/pnpm/store
+      PNPM_FETCH_RETRIES: ${PNPM_FETCH_RETRIES:-5}
+      PNPM_FETCH_RETRY_MAX_TIMEOUT_MS: ${PNPM_FETCH_RETRY_MAX_TIMEOUT_MS:-120000}
+      PNPM_FETCH_TIMEOUT_MS: ${PNPM_FETCH_TIMEOUT_MS:-300000}
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+    volumes:
+      - .:/workspace/ozone:ro
+      - ../atproto:/workspace/atproto-source:ro
+      - atproto_workdir:/workspace/atproto
+      - atproto_node_modules:/workspace/atproto/node_modules
+      - atproto_pnpm_store:/home/node/.local/share/pnpm/store
+    ports:
+      - "2581:2581"
+      - "2582:2582"
+      - "2583:2583"
+      - "2584:2584"
+      - "2587:2587"
+    command: ["bash", "/workspace/ozone/scripts/dev-stack/atproto-entrypoint.sh"]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://localhost:2587/xrpc/_health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  ozone-ui:
+    build:
+      context: .
+      dockerfile: docker/dev/ozone-ui.Dockerfile
+    depends_on:
+      atproto-dev-env:
+        condition: service_healthy
+    working_dir: /workspace/ozone
+    environment:
+      NODE_ENV: development
+      ATPROTO_OZONE_INTERNAL_URL: http://atproto-dev-env:2587
+      NEXT_PUBLIC_OZONE_PUBLIC_URL: http://localhost:2587
+      NEXT_PUBLIC_PLC_DIRECTORY_URL: http://localhost:2582
+      NEXT_PUBLIC_SOCIAL_APP_URL: http://localhost:2584
+      NEXT_PUBLIC_HANDLE_RESOLVER_URL: http://localhost:2584
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ozone_node_modules:/workspace/ozone/node_modules
+      - ozone_next:/workspace/ozone/.next
+    ports:
+      - "3000:3000"
+    command: ["bash", "/workspace/ozone/scripts/dev-stack/ozone-ui-entrypoint.sh"]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://localhost:3000').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /workspace/ozone
+          initial_sync: true
+          ignore:
+            - .git/
+            - .next/
+            - node_modules/
+            - package.json
+            - yarn.lock
+            - .yarnrc.yml
+            - docker/dev/ozone-ui.Dockerfile
+            - scripts/dev-stack/ozone-ui-entrypoint.sh
+        - action: sync+restart
+          path: package.json
+          target: /workspace/ozone/package.json
+        - action: sync+restart
+          path: yarn.lock
+          target: /workspace/ozone/yarn.lock
+        - action: sync+restart
+          path: .yarnrc.yml
+          target: /workspace/ozone/.yarnrc.yml
+        - action: sync+restart
+          path: scripts/dev-stack/ozone-ui-entrypoint.sh
+          target: /workspace/ozone/scripts/dev-stack/ozone-ui-entrypoint.sh
+        - action: rebuild
+          path: docker/dev/ozone-ui.Dockerfile
+
+volumes:
+  ozone_dev_postgres:
+  ozone_dev_redis:
+  atproto_workdir:
+  atproto_node_modules:
+  atproto_pnpm_store:
+  ozone_node_modules:
+  ozone_next:

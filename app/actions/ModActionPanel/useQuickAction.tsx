@@ -12,6 +12,7 @@ import {
   isSelfLabel,
 } from '@/common/labels/util'
 import { useKeyPressEvent } from 'react-use'
+import { getOptionalProfile } from '@/lib/profile'
 import {
   DAY,
   getDidFromUri,
@@ -883,16 +884,7 @@ export const useQuickAction = (
 function useSubjectQuery(subject: string) {
   const labelerAgent = useLabelerAgent()
 
-  const getProfile = async (actor: string) => {
-    try {
-      const { data: profile } = await labelerAgent.app.bsky.actor.getProfile({
-        actor,
-      })
-      return profile
-    } catch (e) {
-      return undefined
-    }
-  }
+  const getProfile = (actor: string) => getOptionalProfile(labelerAgent, actor)
 
   return useQuery({
     // subject of the report
