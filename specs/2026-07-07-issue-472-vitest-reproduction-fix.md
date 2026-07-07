@@ -236,7 +236,7 @@ hydrated.
   Cypress coverage without proving the failing XRPC contract.
   **Mitigation:** ADR-001 limits the initial lane to plain Vitest with a node
   environment.
-  **Detection:** `vitest.config.ts` has no browser provider config and
+  **Detection:** `vitest.config.mts` has no browser provider config and
   `package.json` has only a unit-test script.
   **Recovery:** Remove browser-mode dependencies/config before committing.
 
@@ -288,7 +288,7 @@ hydrated.
   plan and execution ledger.
 - `package.json`: add unit-test scripts and explicit dependency metadata.
 - `yarn.lock`: Yarn 4 lockfile updates for Vitest and `@atproto/syntax`.
-- `vitest.config.ts`: plain Vitest config with existing TypeScript path aliases.
+- `vitest.config.mts`: plain Vitest config with existing TypeScript path aliases.
 - `lib/util.ts`: add a documented `isFullRecordAtUri` guard using
   `parseAtUriString`.
 - `lib/util.test.ts`: unit tests for full-record AT URI validation.
@@ -373,7 +373,7 @@ hydrated.
 ### Task 2: Add plain Vitest infrastructure
 
 **Files:** Modify: `package.json`, `yarn.lock`. Create:
-`vitest.config.ts`.
+`vitest.config.mts`.
 
 **Execution:**
 - Owner: current session (Crown: Executor).
@@ -393,7 +393,7 @@ hydrated.
   `npm exec --yes --package=@yarnpkg/cli-dist@4.8.1 yarn -- test:unit`.
 - Integration gate: verify no Browser Mode dependencies or config were added.
 - Rollback command:
-  `git restore -- package.json yarn.lock && rm -f vitest.config.ts`.
+  `git restore -- package.json yarn.lock && rm -f vitest.config.mts`.
 - Definition of Done: `test:unit` exists, Vitest can start, and config resolves
   existing TypeScript aliases.
 
@@ -403,7 +403,7 @@ hydrated.
   `npm exec --yes --package=@yarnpkg/cli-dist@4.8.1 yarn -- add @atproto/syntax`.
 - [ ] **Step 3: Add scripts to `package.json`** -
   `test:unit` runs `vitest run`; `test:unit:watch` runs `vitest`.
-- [ ] **Step 4: Create `vitest.config.ts`**:
+- [ ] **Step 4: Create `vitest.config.mts`**:
 
 ```ts
 import react from '@vitejs/plugin-react'
@@ -569,7 +569,7 @@ export function isFullRecordAtUri(uri: string): boolean {
   and
   `ast-grep run --pattern 'new AtUri($URI)' --lang tsx components/mod-event lib`.
 - [ ] **Step 4: Inspect package diff** -
-  `git diff -- package.json yarn.lock vitest.config.ts`.
+  `git diff -- package.json yarn.lock vitest.config.mts`.
 
 ### Task 6: Archive decisions and commit implementation
 
@@ -603,7 +603,7 @@ evidence.
 - [ ] **Step 2: Close Engineering Ledger** - include unit, typecheck, structural
   audit, and git status evidence.
 - [ ] **Step 3: Stage only task-owned paths** -
-  `git add package.json yarn.lock vitest.config.ts lib/util.ts lib/util.test.ts components/mod-event/hydration.ts components/mod-event/hydration.test.ts components/mod-event/useModEventList.tsx components/mod-event/helpers/subject.tsx components/mod-event/helpers/subject.test.ts specs/2026-07-07-issue-472-vitest-reproduction-fix.md decisions/2026-07-07-issue-472-vitest-and-uri-guard.md`.
+  `git add package.json yarn.lock vitest.config.mts lib/util.ts lib/util.test.ts components/mod-event/hydration.ts components/mod-event/hydration.test.ts components/mod-event/useModEventList.tsx components/mod-event/helpers/subject.tsx components/mod-event/helpers/subject.test.ts specs/2026-07-07-issue-472-vitest-reproduction-fix.md decisions/2026-07-07-issue-472-vitest-and-uri-guard.md`.
 - [ ] **Step 4: Commit** -
   `git commit -m "fix: skip malformed moderation record hydration"`.
 
@@ -663,12 +663,43 @@ were accessed on 2026-07-07.
 browser-mode testing out of scope.
 **ADR impact:** Supports ADR-001 and ADR-003.
 
-### 2026-07-07 HH:MM - Execution closure
+### 2026-07-07 19:39 - Red regression captured
 
 **Mode:** Execution.
-**Context:** To be completed after implementation.
-**Evidence:** Unit test output, typecheck output, structural audit output, and
-commit SHA range will be recorded here.
-**Decision / next step:** Close the campaign when every task and verification
-gate is complete.
-**ADR impact:** None expected.
+**Context:** Plain Vitest infrastructure was installed with Node-20-compatible
+versions, the hydration helper was extracted with current permissive behavior,
+and the issue #472 regression was run before applying the fix.
+**Evidence:** `npm exec --yes --package=@yarnpkg/cli-dist@4.8.1 yarn --
+test:unit components/mod-event/hydration.test.ts lib/util.test.ts` reported
+`lib/util.test.ts (3 tests)` passed and
+`components/mod-event/hydration.test.ts (1 test | 1 failed)` with
+`Error: uris/0 must be a valid at-uri`.
+**Decision / next step:** Apply the full-record URI guard to record hydration
+targets and secondary strongRef parsing paths.
+**ADR impact:** Confirms ADR-001, ADR-003, and ADR-004.
+
+### 2026-07-07 19:40 - Green verification
+
+**Mode:** Execution.
+**Context:** Applied `isFullRecordAtUri`, filtered record hydration targets,
+guarded subject-title parsing, and guarded subject-author extraction.
+**Evidence:** `npm exec --yes --package=@yarnpkg/cli-dist@4.8.1 yarn --
+test:unit` reported `Test Files  3 passed (3)` and `Tests  6 passed (6)`.
+`npm exec --yes --package=@yarnpkg/cli-dist@4.8.1 yarn -- type-check`
+completed with exit code 0.
+**Decision / next step:** Run structural audit and commit the implementation.
+**ADR impact:** ADR-002 accepted through direct `@atproto/syntax` dependency.
+
+### 2026-07-07 19:41 - Execution closure
+
+**Mode:** Execution.
+**Context:** Structural audit and implementation commit completed.
+**Evidence:** `ast-grep run --pattern
+'$AGENT.tools.ozone.moderation.getRecords($ARGS)' --lang ts components lib`
+found only `components/mod-event/hydration.ts:99`; `ast-grep run --pattern
+'new AtUri($URI)' --lang tsx components/mod-event lib` found only guarded
+moderation-path parses in `helpers/subject.tsx` and `useModEventList.tsx`.
+Implementation commit: `59ebbde`.
+**Decision / next step:** Archive the durable decision in
+`decisions/2026-07-07-issue-472-vitest-and-uri-guard.md`.
+**ADR impact:** None.
