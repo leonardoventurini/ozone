@@ -3,6 +3,7 @@ import '../styles/globals.css'
 import 'yet-another-react-lightbox/styles.css'
 import 'yet-another-react-lightbox/plugins/thumbnails.css'
 import 'yet-another-react-lightbox/plugins/captions.css'
+import { useEffect } from 'react'
 import { ToastContainer } from 'react-toastify'
 
 import { Shell } from '@/shell/Shell'
@@ -10,37 +11,43 @@ import { CommandPaletteRoot } from '@/shell/CommandPalette/Root'
 import { AuthProvider } from '@/shell/AuthContext'
 import { DefaultQueryClientProvider } from '@/shell/QueryClient'
 import { GlobalQueryClientProvider } from '@/shell/QueryClient'
-import { isDarkModeEnabled } from '@/common/useColorScheme'
+import { applyColorSchemePreference } from '@/common/useColorScheme'
 import { HANDLE_RESOLVER_URL, PLC_DIRECTORY_URL } from '@/lib/constants'
 import { ConfigProvider } from '@/shell/ConfigContext'
 import { ConfigurationProvider } from '@/shell/ConfigurationContext'
 import { ExternalLabelersProvider } from '@/shell/ExternalLabelersContext'
 
+const DEFAULT_FAVICON_HREF = '/img/logo-colorful.png'
+const LOCALHOST_FAVICON_HREF = '/img/logo-white.png'
+
+const isLocalhost = (): boolean => {
+  return (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '::1'
+  )
+}
+
+/** Root application shell with browser-only preferences applied after hydration. */
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Since we're doing everything client side and not using RSC, we can't use `Metadata` feature from next
-  // to have these head tags from the server
-  const isLocal =
-    typeof window !== 'undefined'
-      ? window?.location.host.includes('localhost:')
-      : false
+  useEffect(() => {
+    applyColorSchemePreference()
+
+    if (isLocalhost()) {
+      document
+        .querySelector<HTMLLinkElement>('link[rel="icon"]')
+        ?.setAttribute('href', LOCALHOST_FAVICON_HREF)
+    }
+  }, [])
 
   return (
-    <html
-      lang="en"
-      className={`h-full bg-gray-50 dark:bg-slate-900 ${
-        isDarkModeEnabled() ? 'dark' : ''
-      }`}
-    >
+    <html lang="en" className="h-full bg-gray-50 dark:bg-slate-900">
       <title>Ozone</title>
-      <link
-        rel="icon"
-        href={`/img/logo-${isLocal ? 'white' : 'colorful'}.png`}
-        sizes="any"
-      />
+      <link rel="icon" href={DEFAULT_FAVICON_HREF} sizes="any" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <body className="h-full overflow-hidden">
         <ToastContainer
