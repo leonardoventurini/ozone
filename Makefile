@@ -1,6 +1,8 @@
 
 SHELL = /bin/bash
 .SHELLFLAGS = -o pipefail -c
+DOCKER_COMPOSE ?= $(shell if docker compose version >/dev/null 2>&1; then printf 'docker compose'; elif command -v docker-compose >/dev/null 2>&1; then printf 'docker-compose'; else printf 'docker compose'; fi)
+DEV_COMPOSE = $(DOCKER_COMPOSE) -f compose.dev.yaml
 
 .PHONY: help
 help: ## Print info about all commands
@@ -21,6 +23,30 @@ test: ## Run tests
 .PHONY: run-dev-server
 run-dev-server: ## Run a "development environment" shell
 	yarn dev
+
+.PHONY: dev-stack-check
+dev-stack-check: ## Verify sibling repositories required by the Docker dev stack
+	bash scripts/dev-stack/check-sibling-atproto.sh
+
+.PHONY: dev-stack-up
+dev-stack-up: dev-stack-check ## Run the coordinated Docker Compose dev stack
+	$(DEV_COMPOSE) up --build
+
+.PHONY: dev-stack-down
+dev-stack-down: ## Stop the coordinated Docker Compose dev stack
+	$(DEV_COMPOSE) down
+
+.PHONY: dev-stack-logs
+dev-stack-logs: ## Follow logs for the coordinated Docker Compose dev stack
+	$(DEV_COMPOSE) logs -f
+
+.PHONY: dev-stack-smoke
+dev-stack-smoke: ## Verify the coordinated Docker Compose dev stack is reachable
+	bash scripts/dev-stack/smoke.sh
+
+.PHONY: dev-stack-reset
+dev-stack-reset: ## Remove Docker Compose dev stack containers and volumes
+	$(DEV_COMPOSE) down -v --remove-orphans
 
 .PHONY: lint
 lint: ## Run style checks and verify syntax

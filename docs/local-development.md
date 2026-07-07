@@ -1,8 +1,9 @@
 # Local development with atproto dev-env
 
 This guide runs the Ozone web UI from this repository against the local
-`@atproto/dev-env` sandbox from a sibling `atproto` checkout. It is the minimal
-setup for UI and moderation workflow development without self-hosting Ozone.
+`@atproto/dev-env` sandbox from a sibling `atproto` checkout. The recommended
+path is the coordinated Docker Compose stack, which isolates the Node versions,
+Postgres, Redis, and application ports behind one command.
 
 For production-like hosting with Docker, Postgres, Caddy, and Watchtower, use
 [`HOSTING.md`](../HOSTING.md) instead.
@@ -27,6 +28,13 @@ cd ozone
 
 ## Prerequisites
 
+For the Docker Compose workflow:
+
+- Docker with the Compose plugin, or the standalone `docker-compose` command.
+- A sibling `atproto` checkout.
+
+For the manual host workflow:
+
 Use separate shells for the two repositories. They intentionally use different
 Node versions:
 
@@ -42,7 +50,79 @@ If `corepack` is not available after installing Node, install it once:
 npm install --global corepack
 ```
 
-## Prepare atproto
+## Coordinated Docker Compose stack
+
+From this repository:
+
+```sh
+make dev-stack-up
+```
+
+This starts:
+
+- Ozone UI: <http://localhost:3000>
+- atproto introspection: <http://localhost:2581>
+- dev-env PLC: <http://localhost:2582>
+- dev-env PDS: <http://localhost:2583>
+- dev-env AppView: <http://localhost:2584>
+- dev-env Ozone backend: <http://localhost:2587>
+
+In a second shell, verify readiness:
+
+```sh
+make dev-stack-smoke
+```
+
+The UI is configured with
+`NEXT_PUBLIC_OZONE_PUBLIC_URL=http://localhost:2587`, so it discovers the
+current Ozone service DID from the dev-env backend automatically. You do not
+need to copy `NEXT_PUBLIC_OZONE_SERVICE_DID` into `.env.local` for the Compose
+workflow.
+
+The sibling `atproto` checkout is mounted read-only. The Compose stack syncs
+tracked, modified, and non-ignored source files into a Docker workdir volume
+before installing dependencies and building, so generated atproto output stays
+inside Docker volumes instead of the sibling checkout.
+
+Stop the stack without deleting dependency or database volumes:
+
+```sh
+make dev-stack-down
+```
+
+Reset the stack completely, including Postgres, Redis, atproto workdir,
+dependency caches, and Next build output volumes:
+
+```sh
+make dev-stack-reset
+```
+
+Follow logs from another shell:
+
+```sh
+make dev-stack-logs
+```
+
+## Sign in
+
+Use the Credentials tab with the local PDS:
+
+```text
+Service URL: http://localhost:2583
+Account handle: mod.test
+Password: mod-pass
+```
+
+Other seeded accounts:
+
+- `triage.test` / `triage-pass`
+- `admin-mod.test` / `admin-mod-pass`
+
+## Manual host workflow
+
+Use this if you need to run either repository directly on the host.
+
+### Prepare atproto
 
 In the sibling `atproto` checkout:
 
@@ -74,7 +154,7 @@ DID:
 Copy the `did:plc:xxxxx` value. The DID changes when the dev environment is
 recreated.
 
-## Prepare Ozone
+### Prepare Ozone
 
 In this repository:
 
@@ -99,47 +179,48 @@ yarn dev
 
 Open <http://localhost:3000>.
 
-## Sign in
-
-Use the Credentials tab with the local PDS:
-
-```text
-Service URL: http://localhost:2583
-Account handle: mod.test
-Password: mod-pass
-```
-
-Other seeded accounts:
-
-- `triage.test` / `triage-pass`
-- `admin-mod.test` / `admin-mod-pass`
-
 ## What is running
 
-For this local workflow:
+For both local workflows:
 
 - The `atproto` dev environment provides the local PLC server, PDS, AppView,
   Ozone service backend, and Ozone daemon.
-- This repository provides only the Next.js Ozone web UI on port 3000.
-- You do not need this repository's Docker compose setup, Caddy, Watchtower, or
-  a separately managed Ozone Postgres database.
+- This repository provides the Next.js Ozone web UI on port 3000.
+- You do not need the production hosting Docker compose setup, Caddy,
+  Watchtower, or a separately managed Ozone Postgres database.
 
 ## Troubleshooting
 
-If the UI stays on the loading spinner, check that `.env.local` contains
+If the Compose UI stays on the loading spinner, run `make dev-stack-smoke` and
+check that `http://localhost:2587/.well-known/ozone-metadata.json` is reachable.
+
+If the manual UI stays on the loading spinner, check that `.env.local` contains
 `NEXT_PUBLIC_OZONE_SERVICE_DID`, that the DID matches the current
 `make run-dev-env` output, and that you restarted `yarn dev` after changing the
 file.
 
 If the dev environment fails with a missing `dist/bin.js` or stale package
-output, run `make build` again in `../atproto`.
+output in the manual workflow, run `make build` again in `../atproto`.
 
 If Docker is unavailable, the atproto helper falls back to host Postgres and
-Redis environment variables. The minimal recommended setup is to keep Docker
-running before `make run-dev-env`.
+Redis environment variables in the manual workflow. The recommended setup is to
+keep Docker running and use `make dev-stack-up`.
+
+If the Compose workflow fails during `pnpm install` with a registry timeout or
+`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`, rerun `make dev-stack-up`. The stack
+keeps the pnpm store in a Docker volume, so a retry can reuse partial download
+state. On slow networks, increase the pnpm request settings without disabling
+atproto's supply-chain policy:
+
+```sh
+PNPM_FETCH_RETRIES=8 PNPM_FETCH_TIMEOUT_MS=600000 make dev-stack-up
+```
 
 If port 3000 is already in use, run the Ozone UI on another port:
 
 ```sh
 yarn dev -p 3001
 ```
+
+For the Compose workflow, stop the process using port 3000 or edit
+`compose.dev.yaml` locally to publish a different host port.
