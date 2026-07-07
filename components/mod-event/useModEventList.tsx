@@ -17,10 +17,11 @@ import {
   TRUSTED_VERIFIER_TAG,
   VIDEO_UPLOAD_DISABLE_TAG,
 } from '@/lib/constants'
-import { chunkArray } from '@/lib/util'
+import { isFullRecordAtUri } from '@/lib/util'
 import { useLabelerAgent } from '@/shell/ConfigurationContext'
 import { useWorkspaceAddItemsMutation } from '@/workspace/hooks'
 import { toast } from 'react-toastify'
+import { getReposAndRecordsForEvents } from './hydration'
 import { useModEventContext } from './ModEventContext'
 import { MOD_EVENT_TITLES, MOD_EVENTS } from './constants'
 
@@ -76,70 +77,6 @@ const initialListState = {
   selectedCollections: [],
   ageAssuranceState: undefined,
   withStrike: false,
-}
-
-const getReposAndRecordsForEvents = async (
-  labelerAgent: Agent,
-  events: ToolsOzoneModerationDefs.ModEventView[],
-) => {
-  const repos = new Map<
-    string,
-    ToolsOzoneModerationDefs.RepoViewDetail | undefined
-  >()
-  const records = new Map<
-    string,
-    ToolsOzoneModerationDefs.RecordViewDetail | undefined
-  >()
-
-  for (const event of events) {
-    if (
-      ComAtprotoAdminDefs.isRepoRef(event.subject) ||
-      ChatBskyConvoDefs.isMessageRef(event.subject)
-    ) {
-      repos.set(event.subject.did, undefined)
-    } else if (ComAtprotoRepoStrongRef.isMain(event.subject)) {
-      records.set(event.subject.uri, undefined)
-    }
-  }
-
-  const fetchers: Array<Promise<void>> = []
-
-  // Right now, we're only loading 25 events at a time so this chunking never really takes effect
-  // But to future proof page size change, we're implementing the chunking anyways
-  if (repos.size) {
-    for (const chunk of chunkArray(Array.from(repos.keys()), 50)) {
-      fetchers.push(
-        labelerAgent.tools.ozone.moderation
-          .getRepos({ dids: chunk })
-          .then(({ data }) => {
-            for (const repo of data.repos) {
-              if (ToolsOzoneModerationDefs.isRepoViewDetail(repo)) {
-                repos.set(repo.did, repo)
-              }
-            }
-          }),
-      )
-    }
-  }
-  if (records.size) {
-    for (const chunk of chunkArray(Array.from(records.keys()), 50)) {
-      fetchers.push(
-        labelerAgent.tools.ozone.moderation
-          .getRecords({ uris: chunk })
-          .then(({ data }) => {
-            for (const record of data.records) {
-              if (ToolsOzoneModerationDefs.isRecordViewDetail(record)) {
-                records.set(record.uri, record)
-              }
-            }
-          }),
-      )
-    }
-  }
-
-  await Promise.all(fetchers)
-
-  return { repos, records }
 }
 
 // The 3 fields need overriding because in the initialState, they are set as undefined so the alternative string type is not accepted without override
@@ -390,7 +327,10 @@ const getModEvents =
           ChatBskyConvoDefs.isMessageRef(e.subject)
         ) {
           return { ...e, repo: repos.get(e.subject.did) }
-        } else if (ComAtprotoRepoStrongRef.isMain(e.subject)) {
+        } else if (
+          ComAtprotoRepoStrongRef.isMain(e.subject) &&
+          isFullRecordAtUri(e.subject.uri)
+        ) {
           return { ...e, record: records.get(e.subject.uri) }
         }
         return { ...e }
@@ -484,7 +424,10 @@ export const useModEventList = (
           ChatBskyConvoDefs.isMessageRef(event.subject)
         ) {
           items.add(event.subject.did)
-        } else if (ComAtprotoRepoStrongRef.isMain(event.subject)) {
+        } else if (
+          ComAtprotoRepoStrongRef.isMain(event.subject) &&
+          isFullRecordAtUri(event.subject.uri)
+        ) {
           items.add(new AtUri(event.subject.uri).host)
         }
       }

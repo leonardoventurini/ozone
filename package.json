@@ -14,6 +14,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "cypress": "cypress open",
     "e2e:run": "$(yarn bin)/cypress run --browser chrome",
     "link-atproto": "node scripts/toggle-atproto.js --link",
@@ -23,6 +25,7 @@
     "@atproto/api": "0.20.9",
     "@atproto/oauth-client-browser": "^0.3.42",
     "@atproto/oauth-types": "^0.6.3",
+    "@atproto/syntax": "^0.7.1",
     "@atproto/xrpc": "^0.8.0",
     "@headlessui/react": "^2.2.1",
     "@heroicons/react": "^2.0.13",
@@ -57,11 +60,15 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.8",
+    "@vitejs/plugin-react": "4.7.0",
     "autoprefixer": "^10.4.13",
     "cypress": "^14.3.0",
     "eslint-plugin-cypress": "^4.2.1",
     "postcss": "^8.4.20",
-    "tailwindcss": "^3.2.4"
+    "tailwindcss": "^3.2.4",
+    "vite": "5.4.21",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "3.1.4"
   },
   "resolutions": {
     "jackspeak": "2.1.1",
