@@ -4,8 +4,8 @@ This page maps the Ozone UI repository to the runtime system it operates. It
 combines the browser-side Next.js app, the packaged Ozone service entrypoint,
 external atproto services, and the two documented deployment modes.
 
-For a zoomable vector render, open
-[architecture.pdf](./architecture.pdf).
+For a high-resolution PNG render, open
+[architecture.png](./architecture.png).
 
 ```mermaid
 flowchart TB
