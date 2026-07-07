@@ -1,0 +1,15 @@
+.git
+.next
+node_modules
+service/node_modules
+
+.env
+.env.*
+!.env.example
+
+coverage
+cypress/screenshots
+cypress/videos
+
+.DS_Store
+*.log

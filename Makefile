@@ -29,7 +29,11 @@ dev-stack-check: ## Verify sibling repositories required by the Docker dev stack
 	bash scripts/dev-stack/check-sibling-atproto.sh
 
 .PHONY: dev-stack-up
-dev-stack-up: dev-stack-check ## Run the coordinated Docker Compose dev stack
+dev-stack-up: dev-stack-check ## Run the coordinated Docker Compose dev stack with file watching
+	$(DEV_COMPOSE) up --build --watch
+
+.PHONY: dev-stack-up-once
+dev-stack-up-once: dev-stack-check ## Run the coordinated Docker Compose dev stack without file watching
 	$(DEV_COMPOSE) up --build
 
 .PHONY: dev-stack-down

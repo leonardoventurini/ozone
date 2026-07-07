@@ -31,6 +31,7 @@ cd ozone
 For the Docker Compose workflow:
 
 - Docker with the Compose plugin, or the standalone `docker-compose` command.
+  The Compose command must support Compose Watch (`up --watch`).
 - A sibling `atproto` checkout.
 
 For the manual host workflow:
@@ -58,7 +59,7 @@ From this repository:
 make dev-stack-up
 ```
 
-This starts:
+This starts the stack with Compose Watch enabled:
 
 - Ozone UI: <http://localhost:3000>
 - atproto introspection: <http://localhost:2581>
@@ -66,6 +67,22 @@ This starts:
 - dev-env PDS: <http://localhost:2583>
 - dev-env AppView: <http://localhost:2584>
 - dev-env Ozone backend: <http://localhost:2587>
+
+Ozone source edits are synchronized into the UI container. The Next.js dev
+server also runs with polling enabled so file changes are detected reliably
+inside Docker. Changes to `package.json`, `yarn.lock`, `.yarnrc.yml`, or the UI
+entrypoint restart the UI service so dependency installation and startup
+configuration are re-read. Changes to the UI development Dockerfile rebuild the
+UI service image.
+
+If you need to run the same stack without Compose Watch, use:
+
+```sh
+make dev-stack-up-once
+```
+
+The non-watch target rebuilds the UI development image on startup, but it does
+not synchronize later source edits into a running UI container.
 
 In a second shell, verify readiness:
 
@@ -215,6 +232,10 @@ atproto's supply-chain policy:
 ```sh
 PNPM_FETCH_RETRIES=8 PNPM_FETCH_TIMEOUT_MS=600000 make dev-stack-up
 ```
+
+If `make dev-stack-up` fails because your Compose command does not recognize
+`--watch`, upgrade Docker Compose or use `make dev-stack-up-once` for the
+non-watch workflow.
 
 If port 3000 is already in use, run the Ozone UI on another port:
 

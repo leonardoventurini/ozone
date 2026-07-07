@@ -83,8 +83,8 @@ services:
       NEXT_PUBLIC_PLC_DIRECTORY_URL: http://localhost:2582
       NEXT_PUBLIC_SOCIAL_APP_URL: http://localhost:2584
       NEXT_PUBLIC_HANDLE_RESOLVER_URL: http://localhost:2584
+      WATCHPACK_POLLING: "true"
     volumes:
-      - .:/workspace/ozone
       - ozone_node_modules:/workspace/ozone/node_modules
       - ozone_next:/workspace/ozone/.next
     ports:
@@ -99,6 +99,35 @@ services:
       interval: 5s
       timeout: 5s
       retries: 60
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /workspace/ozone
+          initial_sync: true
+          ignore:
+            - .git/
+            - .next/
+            - node_modules/
+            - package.json
+            - yarn.lock
+            - .yarnrc.yml
+            - docker/dev/ozone-ui.Dockerfile
+            - scripts/dev-stack/ozone-ui-entrypoint.sh
+        - action: sync+restart
+          path: package.json
+          target: /workspace/ozone/package.json
+        - action: sync+restart
+          path: yarn.lock
+          target: /workspace/ozone/yarn.lock
+        - action: sync+restart
+          path: .yarnrc.yml
+          target: /workspace/ozone/.yarnrc.yml
+        - action: sync+restart
+          path: scripts/dev-stack/ozone-ui-entrypoint.sh
+          target: /workspace/ozone/scripts/dev-stack/ozone-ui-entrypoint.sh
+        - action: rebuild
+          path: docker/dev/ozone-ui.Dockerfile
 
 volumes:
   ozone_dev_postgres:

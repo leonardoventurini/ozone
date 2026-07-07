@@ -9,4 +9,6 @@ RUN corepack enable \
   && mkdir -p /workspace/ozone/node_modules /workspace/ozone/.next \
   && chown -R node:node /workspace
 
+COPY --chown=node:node . /workspace/ozone
+
 WORKDIR /workspace/ozone
