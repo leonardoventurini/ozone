@@ -36,6 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local agent planning artifacts
+specs/
+
 # cypress
 cypress/videos
 cypress/screenshots
