@@ -15,6 +15,30 @@ findings. Yarn emits one JSON object per line for `--json`; the entries below
 preserve the package, advisory or deprecation identifier, severity, vulnerable
 version range, observed tree versions, and dependent chain reported by Yarn.
 
+## After Remediation Snapshot
+
+Commands:
+
+```sh
+yarn audit:deps
+yarn npm audit --recursive --json
+(cd service && yarn npm audit --recursive --json)
+```
+
+Result after the dependency and toolchain remediation commits:
+
+- Root high-severity recursive threshold: pass, `No audit suggestions`.
+- Service high-severity recursive threshold: pass, `No audit suggestions`.
+- Root full recursive report: two remaining moderate deprecation-style entries:
+  - `@ungap/structured-clone` `1.3.0` through `rehype-autolink-headings@7.1.0`.
+  - `recharts` `2.15.4`, whose 1.x and 2.x branches are inactive and require a v3 migration.
+- Service full recursive report: clean, exit status `0`.
+
+The CI workflow uploads the full recursive reports and threshold reports as
+`dependency-audit-reports` on every run, including failing runs, so future
+dependency changes retain before/after evidence without weakening the high
+severity merge gate.
+
 ## Root Package Audit
 
 - `@humanwhocodes/config-array`
