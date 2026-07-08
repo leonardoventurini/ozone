@@ -12,6 +12,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "audit:deps": "bash scripts/dependency-audit.sh",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "cypress": "cypress open",
