@@ -53,6 +53,7 @@
     "remark-html": "^15.0.2",
     "tailwind-merge": "^3.5.0",
     "typescript": "^5.4.5",
+    "uuid": "14.0.1",
     "yet-another-react-lightbox": "^3.20.0"
   },
   "devDependencies": {
