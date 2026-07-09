@@ -1,6 +1,7 @@
 import { CollectionId } from '@/reports/helpers/subject'
 import { SOCIAL_APP_URL } from './constants'
 import { AtUri } from '@atproto/api'
+import { parseAtUriString } from '@atproto/syntax'
 
 export function classNames(...classes: (string | undefined)[]) {
   return classes.filter(Boolean).join(' ')
@@ -17,6 +18,22 @@ export function parseAtUri(
     collection: collection?.replace('/', '') ?? null,
     rkey: rkey?.replace('/', '') ?? null,
   }
+}
+
+/**
+ * Returns whether a URI identifies a concrete AT Protocol repository record.
+ *
+ * Collection-level AT URIs are syntactically valid, but moderation record
+ * hydration requires a full URI with collection and record key.
+ */
+export function isFullRecordAtUri(uri: string): boolean {
+  const result = parseAtUriString(uri)
+
+  if (!result.success) {
+    return false
+  }
+
+  return Boolean(result.value.collection && result.value.rkey)
 }
 
 export function createAtUri(parts: {
