@@ -18,7 +18,7 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "cypress": "cypress open",
-    "e2e:run": "$(yarn bin)/cypress run --browser chrome",
+    "e2e:run": "cypress run --browser chrome",
     "link-atproto": "node scripts/toggle-atproto.js --link",
     "unlink-atproto": "node scripts/toggle-atproto.js --unlink"
   },
