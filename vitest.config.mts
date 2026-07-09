@@ -6,7 +6,14 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: 'node',
-    exclude: ['node_modules', '.next', 'cypress'],
-    include: ['**/*.test.ts', '**/*.test.tsx'],
+    exclude: ['**/node_modules/**', '.next/**', 'cypress/**'],
+    include: [
+      'app/**/*.test.ts',
+      'app/**/*.test.tsx',
+      'components/**/*.test.ts',
+      'components/**/*.test.tsx',
+      'lib/**/*.test.ts',
+      'lib/**/*.test.tsx',
+    ],
   },
 })
