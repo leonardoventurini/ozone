@@ -1,4 +1,4 @@
-/// <reference types="cypress" />"
+/// <reference types="cypress" />
 
 import {
   mockModerationReportsResponse,
@@ -59,15 +59,18 @@ describe('Mod Action -> Label', () => {
       (req) => {
         requestedCids.push(req.body.subject.cid)
       },
-    )
-
-    cy.get('#mod-action-panel button[type="submit"]').click()
+    ).as('emitEvents')
 
     const labeledCids = seedFixture.carla.multiCidLabeledProfile.labels.map(
       ({ cid }) => cid,
     )
+    cy.get('#mod-action-panel button[type="submit"]').click()
+    cy.wrap(labeledCids).each(() => {
+      cy.wait('@emitEvents')
+    })
+
     // Validate that events were emitted for 2 different cids matching the exact number of labels added to different cids
-    cy.wait(300).then(() => {
+    cy.then(() => {
       const uniqueRequestedCids = [...new Set(requestedCids)]
       const uniqueLabeledCids = [...new Set(labeledCids)]
       expect(uniqueRequestedCids).to.have.members(uniqueLabeledCids)

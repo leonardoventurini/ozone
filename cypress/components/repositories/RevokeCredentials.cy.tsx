@@ -118,7 +118,8 @@ describe('<RevokeCredentialsForm />', () => {
     cy.contains('Revoke Credentials').should('be.disabled')
 
     // Type and clear - button should still be disabled
-    cy.get('input[name="comment"]').type('Test').clear()
+    cy.get('input[name="comment"]').type('Test')
+    cy.get('input[name="comment"]').clear()
     cy.contains('Revoke Credentials').should('be.disabled')
 
     // Enter valid comment - button should be enabled

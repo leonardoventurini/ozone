@@ -29,6 +29,7 @@ jobs:
         uses: wearerequired/lint-action@v2.2.0
         with:
           eslint: true
+          eslint_extensions: js,jsx,ts,tsx,mjs,cjs
 
       - name: Typescript & Lint check
         run: yarn lint

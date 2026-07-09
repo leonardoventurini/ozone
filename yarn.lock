@@ -1040,7 +1040,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^3.3.5":
+"@eslint/eslintrc@npm:3.3.5, @eslint/eslintrc@npm:^3.3.5":
   version: 3.3.5
   resolution: "@eslint/eslintrc@npm:3.3.5"
   dependencies:
@@ -8246,6 +8246,8 @@ __metadata:
     "@atproto/oauth-types": "npm:^0.6.3"
     "@atproto/syntax": "npm:0.7.1"
     "@atproto/xrpc": "npm:^0.8.0"
+    "@eslint/eslintrc": "npm:3.3.5"
+    "@eslint/js": "npm:9.39.4"
     "@headlessui/react": "npm:^2.2.1"
     "@heroicons/react": "npm:^2.0.13"
     "@tailwindcss/forms": "npm:^0.5.3"

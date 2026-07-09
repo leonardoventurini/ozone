@@ -136,14 +136,13 @@ describe('Queue Management', () => {
       cy.get('#subjectTypes-record').check()
       cy.get('#collection').should('be.visible').type('app.bsky.feed.post{esc}')
 
-      cy.get('[data-cy="report-types-input"]')
-        .scrollIntoView()
-        .type('hate speech')
+      cy.get('[data-cy="report-types-input"]').scrollIntoView()
+      cy.get('[data-cy="report-types-input"]').type('hate speech')
       cy.contains('Hate Speech').click()
       cy.get('[data-cy="report-types-input"]').type('{esc}')
 
       cy.get('[data-cy="submit-queue-button"]').click()
-      cy.wait(2000)
+      cy.wait('@mockCreateQueueResponse')
 
       cy.contains('Queue created successfully').should('be.visible')
     })
@@ -193,7 +192,7 @@ describe('Queue Management', () => {
 
         cy.get('button[title="Delete queue"]').first().click()
         cy.get('[data-cy="confirm-delete-queue-button"]').click()
-        cy.wait(2000)
+        cy.wait('@mockDeleteQueueResponse')
         cy.contains('Queue deleted successfully').should('be.visible')
         cy.get('[data-cy="delete-queue-dialog"]').should('not.exist')
       })

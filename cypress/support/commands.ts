@@ -52,7 +52,8 @@ Cypress.Commands.add(
 
     // The login form mounts after @atproto/oauth-client-browser import
     // Allow a timeout for the import to complete
-    cy.get('#service-url', { timeout: 10000 }).clear().type(API_URL)
+    cy.get('#service-url', { timeout: 10000 }).clear()
+    cy.get('#service-url').type(API_URL)
     cy.get('#account-handle').type('alice.test')
     cy.get('#password').type('hunter2')
     cy.get("button[type='submit']").click()
@@ -63,7 +64,8 @@ Cypress.Commands.add('openCommandPalette', (input?: string) => {
   const comboKey = Cypress.platform === 'darwin' ? '{cmd}k' : '{ctrl}k'
   cy.get('body').type(comboKey)
   if (input) {
-    cy.get('[aria-controls="kbar-listbox"]').clear().type(input)
-    cy.wait(300)
+    cy.get('[aria-controls="kbar-listbox"]').clear()
+    cy.get('[aria-controls="kbar-listbox"]').type(input)
+    cy.get('#kbar-listbox').should('be.visible')
   }
 })

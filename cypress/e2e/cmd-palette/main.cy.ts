@@ -1,4 +1,4 @@
-/// <reference types="cypress" />"
+/// <reference types="cypress" />
 
 import { HANDLE_RESOLVER_URL, SERVER_URL } from '../../support/api'
 
@@ -40,11 +40,9 @@ describe('Command Palette', () => {
   })
 
   it('Shows post options from bsky app post url', () => {
-    cy.wait(500)
     cy.openCommandPalette(bskyPostUrlWithHandle)
     cy.get('#kbar-listbox-item-1').contains('Take action on Post').click()
-    cy.wait(500)
-    cy.location('href').then((href) => {
+    cy.location('href').should((href) => {
       expect(decodeURIComponent(href)).to.include(
         `quickOpen=at://did:plc:56ud7t6bqdkwblmzwmkcetst/app.bsky.feed.post/3kozf56ocx32a`,
       )
@@ -52,11 +50,9 @@ describe('Command Palette', () => {
   })
 
   it('Shows user options from bsky app post url', () => {
-    cy.wait(500)
     cy.openCommandPalette(bskyPostUrlWithHandle)
     cy.get('#kbar-listbox-item-2').contains('Take action on alice.test').click()
-    cy.wait(500)
-    cy.location('href').then((href) => {
+    cy.location('href').should((href) => {
       expect(decodeURIComponent(href)).to.include(
         `quickOpen=did:plc:56ud7t6bqdkwblmzwmkcetst`,
       )
