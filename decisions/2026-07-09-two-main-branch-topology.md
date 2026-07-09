@@ -21,6 +21,8 @@ The repo-local git config also sets:
 
 - `remote.pushDefault = origin`
 - `branch.main.pushRemote = origin`
+- `remote.upstream.pushurl = DISABLED`
+- `branch.upstream-main.pushRemote = upstream`
 - `pull.ff = only`
 
 The operational runbook lives in `docs/git-branch-topology.md`.
@@ -41,6 +43,8 @@ The operational runbook lives in `docs/git-branch-topology.md`.
 - `main` can intentionally contain personal commits ahead of Bluesky upstream.
 - `upstream-main` gives a stable local place to inspect, compare, and merge the
   canonical upstream state.
+- Explicit pushes to `upstream` fail locally unless the disabled push URL is
+  intentionally restored.
 - Pulls are fast-forward-only by default, so unexpected divergence has to be
   handled deliberately.
 - Upstream imports into personal `main` use explicit merges, preserving pushed

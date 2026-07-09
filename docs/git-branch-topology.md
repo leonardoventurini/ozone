@@ -18,6 +18,10 @@ Repo-local guardrails:
 
 - `remote.pushDefault = origin` keeps default pushes pointed at the fork.
 - `branch.main.pushRemote = origin` keeps `main` pushes pointed at the fork.
+- `remote.upstream.pushurl = DISABLED` makes explicit pushes to Bluesky
+  upstream fail locally unless the push URL is intentionally restored.
+- `branch.upstream-main.pushRemote = upstream` routes accidental pushes from
+  `upstream-main` to the disabled upstream push URL.
 - `pull.ff = only` makes `git pull` fail instead of silently creating merge
   commits when histories have diverged.
 
@@ -40,6 +44,10 @@ git pull --ff-only
 
 Do not commit personal work on `upstream-main`. If it ever has local commits,
 stop and inspect the branch before resetting or rebasing it.
+
+Plain `git push` from `upstream-main` is configured to fail through the disabled
+`upstream` push URL. That protects the upstream mirror from accidental branch
+publishing.
 
 ## Keep Personal Main Current With The Fork
 
