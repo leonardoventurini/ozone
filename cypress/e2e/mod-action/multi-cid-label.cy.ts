@@ -43,13 +43,30 @@ describe('Mod Action -> Label', () => {
 
   it('Allows removing and adding a label to a subject', () => {
     const PORN_LABEL = 'porn'
+    cy.intercept(
+      'GET',
+      `${SERVER_URL}/tools.ozone.moderation.getRecord?uri=${encodeURIComponent(
+        seedFixture.carla.multiCidLabeledProfile.uri,
+      )}`,
+      {
+        statusCode: 200,
+        body: seedFixture.carla.multiCidLabeledProfile,
+      },
+    ).as('getMultiCidProfile')
+
     cy.get('table').should('include.text', seedFixture.carla.repo.handle)
     cy.contains('button', 'Take Action').click()
+    cy.wait('@getMultiCidProfile')
     cy.get('[data-cy="mod-event-selector"] button').click()
     cy.get('[data-headlessui-state="open"] > a:contains("Label")').click()
+    cy.get('input[name="labels"]').should(
+      'have.value',
+      `${PORN_LABEL},${PORN_LABEL}`,
+    )
     cy.get('[data-cy="label-selector-buttons"] span')
       .contains(PORN_LABEL)
       .click()
+    cy.get('input[name="labels"]').should('have.value', '')
 
     const requestedCids: string[] = []
     cy.intercept(

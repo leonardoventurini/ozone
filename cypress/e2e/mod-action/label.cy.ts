@@ -31,15 +31,38 @@ describe('Mod Action -> Label', () => {
   it('Allows removing and adding a label to a subject', () => {
     const NUDITY_LABEL = 'nudity'
     const existingLabel = seedFixture.carla.repo.labels[0].val
+    const repoWithEditableLabel = {
+      ...seedFixture.carla.repo,
+      labels: [
+        {
+          ...seedFixture.carla.repo.labels[0],
+          src: authFixture.ozoneMetaResponse.did,
+        },
+      ],
+    }
+
+    cy.intercept(
+      'GET',
+      `${SERVER_URL}/tools.ozone.moderation.getRepo?did=${encodeURIComponent(
+        repoWithEditableLabel.did,
+      )}`,
+      {
+        statusCode: 200,
+        body: repoWithEditableLabel,
+      },
+    ).as('getEditableRepo')
 
     cy.get('table').should('include.text', seedFixture.carla.repo.handle)
     cy.contains('button', 'Take Action').click()
+    cy.wait('@getEditableRepo')
     cy.get('[data-cy="mod-event-selector"] button').click()
     cy.get('[data-headlessui-state="open"] > a:contains("Label")').click()
+    cy.get('input[name="labels"]').should('have.value', existingLabel)
     cy.get('[data-cy="label-selector-buttons"]').within(() => {
       cy.contains('span', existingLabel).click()
       cy.contains('span', NUDITY_LABEL).click()
     })
+    cy.get('input[name="labels"]').should('have.value', NUDITY_LABEL)
 
     cy.intercept(
       'POST',
