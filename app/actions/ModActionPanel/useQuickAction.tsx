@@ -12,7 +12,6 @@ import {
   isSelfLabel,
 } from '@/common/labels/util'
 import { useKeyPressEvent } from 'react-use'
-import { getOptionalProfile } from '@/lib/profile'
 import {
   DAY,
   getDidFromUri,
@@ -56,6 +55,7 @@ import {
 } from './useTakedownEmail'
 import { format } from 'date-fns'
 import { compileTemplateContent, getTemplate } from '@/email/helpers'
+import { getBestEffortActionProfile } from './profile'
 
 export type QuickActionProps = {
   subject: string
@@ -884,7 +884,8 @@ export const useQuickAction = (
 function useSubjectQuery(subject: string) {
   const labelerAgent = useLabelerAgent()
 
-  const getProfile = (actor: string) => getOptionalProfile(labelerAgent, actor)
+  const getProfile = (actor: string) =>
+    getBestEffortActionProfile(labelerAgent, actor)
 
   return useQuery({
     // subject of the report
