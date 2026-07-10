@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { unique } from '@/lib/util'
 import { useConfigurationContext } from '@/shell/ConfigurationContext'
@@ -10,6 +10,41 @@ import { LabelChip } from './LabelChip'
 
 const EMPTY_ARR = []
 
+/**
+ * Preserve moderator edits while still allowing async subject labels to hydrate.
+ */
+export const reconcileSelectedLabelsWithDefaults = ({
+  currentLabels,
+  previousDefaultLabels,
+  nextDefaultLabels,
+}: {
+  currentLabels: readonly string[]
+  previousDefaultLabels: readonly string[]
+  nextDefaultLabels: readonly string[]
+}): string[] | readonly string[] => {
+  if (
+    haveSameLabels(currentLabels, previousDefaultLabels) &&
+    !haveSameLabels(currentLabels, nextDefaultLabels)
+  ) {
+    return [...nextDefaultLabels]
+  }
+
+  return currentLabels
+}
+
+/**
+ * Label selector order is meaningful because it is serialized into form data.
+ */
+const haveSameLabels = (
+  left: readonly string[],
+  right: readonly string[],
+): boolean =>
+  left.length === right.length &&
+  left.every((label, index) => label === right[index])
+
+/**
+ * Select labels to create or remove while preserving loaded subject labels.
+ */
 export const LabelSelector = (props: LabelsProps) => {
   const {
     id,
@@ -21,8 +56,28 @@ export const LabelSelector = (props: LabelsProps) => {
   } = props
   const { config } = useConfigurationContext()
   const [query, setQuery] = useState<string>('')
-  const [selectedLabels, setSelectedLabels] = useState<string[]>(defaultLabels)
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([
+    ...defaultLabels,
+  ])
+  const previousDefaultLabelsRef = useRef<readonly string[]>(defaultLabels)
   const labelGroups = useLabelGroups()
+
+  useEffect(() => {
+    const previousDefaultLabels = previousDefaultLabelsRef.current
+    previousDefaultLabelsRef.current = defaultLabels
+
+    setSelectedLabels((currentLabels) => {
+      const reconciledLabels = reconcileSelectedLabelsWithDefaults({
+        currentLabels,
+        previousDefaultLabels,
+        nextDefaultLabels: defaultLabels,
+      })
+
+      return reconciledLabels === currentLabels
+        ? currentLabels
+        : [...reconciledLabels]
+    })
+  }, [defaultLabels])
 
   const selectorOptions = useMemo(
     () =>
