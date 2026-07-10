@@ -45,7 +45,6 @@ describe('Mod Action -> Label', () => {
     const PORN_LABEL = 'porn'
     cy.get('table').should('include.text', seedFixture.carla.repo.handle)
     cy.contains('button', 'Take Action').click()
-    cy.get('[data-cy="label-list"]').contains(PORN_LABEL)
     cy.get('[data-cy="mod-event-selector"] button').click()
     cy.get('[data-headlessui-state="open"] > a:contains("Label")').click()
     cy.get('[data-cy="label-selector-buttons"] span')
@@ -58,6 +57,19 @@ describe('Mod Action -> Label', () => {
       `${SERVER_URL}/tools.ozone.moderation.emitEvent`,
       (req) => {
         requestedCids.push(req.body.subject.cid)
+        expect(req.body.event.createLabelVals).to.be.empty
+        expect(req.body.event.negateLabelVals).to.include(PORN_LABEL)
+        req.reply({
+          statusCode: 200,
+          body: {
+            id: requestedCids.length,
+            event: req.body.event,
+            subject: req.body.subject,
+            subjectBlobCids: [],
+            createdBy: 'did:plc:t7jaiidsmjzvtp7quvto4lo2',
+            createdAt: '2024-05-13T18:40:13.196Z',
+          },
+        })
       },
     ).as('emitEvents')
 

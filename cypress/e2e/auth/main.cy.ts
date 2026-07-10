@@ -1,4 +1,4 @@
-/// <reference types="cypress" />"
+/// <reference types="cypress" />
 
 import { API_URL, mockAuthResponse } from '../../support/api'
 

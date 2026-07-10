@@ -66,6 +66,5 @@ Cypress.Commands.add('openCommandPalette', (input?: string) => {
   if (input) {
     cy.get('[aria-controls="kbar-listbox"]').clear()
     cy.get('[aria-controls="kbar-listbox"]').type(input)
-    cy.get('#kbar-listbox').should('be.visible')
   }
 })

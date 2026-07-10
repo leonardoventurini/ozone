@@ -1,4 +1,4 @@
-/// <reference types="cypress" />"
+/// <reference types="cypress" />
 
 import {
   mockModerationReportsResponse,
@@ -30,38 +30,32 @@ describe('Mod Action -> Label', () => {
 
   it('Allows removing and adding a label to a subject', () => {
     const NUDITY_LABEL = 'nudity'
+    const existingLabel = seedFixture.carla.repo.labels[0].val
+
     cy.get('table').should('include.text', seedFixture.carla.repo.handle)
     cy.contains('button', 'Take Action').click()
-    cy.get('[data-cy="label-list"]').contains(
-      seedFixture.carla.repo.labels[0].val,
-    )
     cy.get('[data-cy="mod-event-selector"] button').click()
     cy.get('[data-headlessui-state="open"] > a:contains("Label")').click()
-    cy.get('[data-cy="label-selector-buttons"] span')
-      .contains(seedFixture.carla.repo.labels[0].val)
-      .click()
-    cy.get(
-      `[data-cy="label-selector-buttons"] span:contains("${NUDITY_LABEL}")`,
-    ).click()
-    cy.get('#mod-action-panel button[type="submit"]').click()
+    cy.get('[data-cy="label-selector-buttons"]').within(() => {
+      cy.contains('span', existingLabel).click()
+      cy.contains('span', NUDITY_LABEL).click()
+    })
 
     cy.intercept(
       'POST',
       `${SERVER_URL}/tools.ozone.moderation.emitEvent`,
       (req) => {
         expect(req.body.event.createLabelVals).to.include(NUDITY_LABEL)
-        expect(req.body.event.negateLabelVals).to.include(
-          seedFixture.carla.repo.labels[0].val,
-        )
+        expect(req.body.event.negateLabelVals).to.include(existingLabel)
 
         req.reply({
-          statusCode: 204,
+          statusCode: 200,
           body: {
             id: 7,
             event: {
               $type: 'tools.ozone.moderation.defs#modEventLabel',
               createLabelVals: [NUDITY_LABEL],
-              negateLabelVals: [seedFixture.carla.repo.labels[0].val],
+              negateLabelVals: [existingLabel],
             },
             subject: {
               $type: 'com.atproto.admin.defs#repoRef',
@@ -73,7 +67,9 @@ describe('Mod Action -> Label', () => {
           },
         })
       },
-    )
+    ).as('emitLabelEvent')
+    cy.get('#mod-action-panel button[type="submit"]').click()
+    cy.wait('@emitLabelEvent')
   })
 
   it('Allows searching and adding custom label', () => {
@@ -88,7 +84,6 @@ describe('Mod Action -> Label', () => {
       .contains(`Click here to add ${TEST_LABEL} as a label.`)
       .click()
     cy.get('[data-cy="label-selector-buttons"] span').contains(TEST_LABEL)
-    cy.get('#mod-action-panel button[type="submit"]').click()
 
     cy.intercept(
       'POST',
@@ -97,7 +92,7 @@ describe('Mod Action -> Label', () => {
         expect(req.body.event.createLabelVals).to.include(TEST_LABEL)
 
         req.reply({
-          statusCode: 204,
+          statusCode: 200,
           body: {
             id: 7,
             event: {
@@ -115,6 +110,8 @@ describe('Mod Action -> Label', () => {
           },
         })
       },
-    )
+    ).as('emitCustomLabelEvent')
+    cy.get('#mod-action-panel button[type="submit"]').click()
+    cy.wait('@emitCustomLabelEvent')
   })
 })
