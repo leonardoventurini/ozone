@@ -59,6 +59,7 @@ describe('Mod Action -> Label', () => {
     cy.wait('@getMultiCidProfile')
     cy.get('[data-cy="mod-event-selector"] button').click()
     cy.get('[data-headlessui-state="open"] > a:contains("Label")').click()
+    cy.wait('@getMultiCidProfile')
     cy.get('input[name="labels"]').should(
       'have.value',
       `${PORN_LABEL},${PORN_LABEL}`,

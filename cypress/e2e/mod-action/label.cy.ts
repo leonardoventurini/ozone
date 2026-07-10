@@ -57,6 +57,7 @@ describe('Mod Action -> Label', () => {
     cy.wait('@getEditableRepo')
     cy.get('[data-cy="mod-event-selector"] button').click()
     cy.get('[data-headlessui-state="open"] > a:contains("Label")').click()
+    cy.wait('@getEditableRepo')
     cy.get('input[name="labels"]').should('have.value', existingLabel)
     cy.get('[data-cy="label-selector-buttons"]').within(() => {
       cy.contains('span', existingLabel).click()
