@@ -61,8 +61,8 @@ Cypress.Commands.add(
 )
 
 Cypress.Commands.add('openCommandPalette', (input?: string) => {
-  const comboKey = Cypress.platform === 'darwin' ? '{cmd}k' : '{ctrl}k'
-  cy.get('body').type(comboKey)
+  cy.contains('button', 'Ctrl Panel').click()
+  cy.get('[aria-controls="kbar-listbox"]').should('be.visible')
   if (input) {
     cy.get('[aria-controls="kbar-listbox"]').clear()
     cy.get('[aria-controls="kbar-listbox"]').type(input)
